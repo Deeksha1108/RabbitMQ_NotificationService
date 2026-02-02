@@ -1,98 +1,259 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Notification Service – RabbitMQ Consumer (Direct + Fanout)
+## Event-Driven Microservices using NestJS + PostgreSQL
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+This Notification Service acts as a consumer service in a RabbitMQ-based microservices architecture.
+It listens for events published by the Post Service and processes notifications accordingly.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+This project demonstrates how real-world backend systems consume events from message brokers
+to perform tasks independently without tight coupling between services.
 
-## Description
+The goal of this service is to show how consumer services react to events
+in a scalable, reliable, and decoupled manner.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+---
 
-## Project setup
+## What is RabbitMQ (Easy Explanation)
 
-```bash
-$ npm install
+RabbitMQ is a message broker that sits between services.
+
+Instead of one service directly calling another service,
+messages flow through RabbitMQ like this:
+
+Producer → Exchange → Queue → Consumer
+
+This approach ensures:
+
+- Loose coupling between services
+- Asynchronous communication
+- Better scalability
+- No dependency on producer availability
+
+---
+
+## RabbitMQ Exchange Types (Concept)
+
+RabbitMQ supports 4 types of exchanges:
+
+- Direct Exchange
+- Fanout Exchange
+- Topic Exchange
+- Headers Exchange
+
+In this project, I have implemented 2 exchange types:
+
+- Direct Exchange
+- Fanout Exchange
+
+These two are the most commonly used patterns in real production systems.
+
+---
+
+## Why Direct and Fanout Only?
+
+Direct and Fanout exchanges cover most backend use cases:
+
+- **Direct Exchange**
+  - One message → one queue → one consumer
+  - Used for task-based or command-based processing
+
+- **Fanout Exchange**
+  - One message → multiple queues → multiple consumers
+  - Used for event broadcasting (publish-subscribe)
+
+Topic and Headers exchanges are intentionally skipped
+to keep the architecture simple and focused.
+
+---
+
+## Messaging Patterns Implemented
+
+### 1. Direct Exchange (Point-to-Point)
+
+Used when only one consumer should process a message.
+
+Flow:
+Post Service → Direct Exchange → Single Queue → Notification Service
+
+Use cases:
+
+- Send email
+- Send SMS
+- Update user activity
+
+In this project:
+
+- Notification Service listens to a direct queue
+- Only one notification consumer receives the message
+
+---
+
+### 2. Fanout Exchange (Publish-Subscribe)
+
+Used when multiple services need to react to the same event.
+
+Flow:
+Post Service → Fanout Exchange → Multiple Queues → Multiple Consumers
+
+Use cases:
+
+- Send push notifications
+- Update analytics
+- Trigger logging
+- Notify multiple subsystems
+
+---
+
+## Real-World Flow Implemented
+
+When a post is created:
+
+1. Post Service publishes an event to RabbitMQ
+2. Notification Service consumes the event
+3. Notifications are sent independently
+
+Notification Service does NOT care:
+
+- Which service produced the message
+- How many other consumers receive the message
+- Whether the producer is currently down
+
+This is how large-scale systems are designed.
+
+---
+
+## Tech Stack Used
+
+- NestJS
+- RabbitMQ
+- @nestjs/microservices
+- PostgreSQL
+- TypeORM
+- amqplib
+- amqp-connection-manager
+- Docker (RabbitMQ)
+- RabbitMQ Management UI
+- Postman
+
+---
+
+## Project Folder Structure
+
+```
+src/
+├── database/
+│   └── entities/
+│       └── notification.entity.ts
+├── modules/
+│   └── notification/
+│       ├── notification.controller.ts
+│       └── notification.service.ts
+├── app.module.ts
+└── main.ts
 ```
 
-## Compile and run the project
+---
 
-```bash
-# development
-$ npm run start
+## Setup Instructions
 
-# watch mode
-$ npm run start:dev
+### Clone Repository
+git clone <repository-url>
+cd notification-service
+npm install
 
-# production mode
-$ npm run start:prod
-```
+---
 
-## Run tests
+### Start RabbitMQ using Docker
+docker run -d \
+--hostname rabbitmq \
+--name rabbitmq \
+-p 5672:5672 \
+-p 15672:15672 \
+rabbitmq:3-management
 
-```bash
-# unit tests
-$ npm run test
+RabbitMQ Dashboard:
+http://localhost:15672
 
-# e2e tests
-$ npm run test:e2e
+Username: guest
+Password: guest
 
-# test coverage
-$ npm run test:cov
-```
+---
 
-## Deployment
+### Start Notification Service
+npm run start:dev
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+---
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## API Endpoint (Optional)
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+This service mainly consumes messages, so API endpoints are minimal.
+Example endpoint for testing:
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+POST /notifications/test
 
-## Resources
+Request Body:
 
-Check out a few resources that may come in handy when working with NestJS:
+{
+  "message": "Hello Notification Service"
+}
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+---
 
-## Support
+## Internal Working (Step-by-Step)
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+1. Notification Service consumes messages from RabbitMQ
+2. Exchange routes the message:
+   - Direct → single queue
+   - Fanout → multiple queues
+3. Notifications are processed:
+   - Emails
+   - Push notifications
+   - Logging
+4. Each consumer acts independently
 
-## Stay in touch
+---
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## RabbitMQ Management UI Verification
 
-## License
+Open:
+http://localhost:15672
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Check:
+
+- Exchanges → Direct / Fanout exchanges
+- Queues → Notification queues
+- Bindings → Exchange-to-queue mapping
+- Message rates → publish / deliver metrics
+
+Note:
+If consumers acknowledge messages, they may disappear from queues — normal behavior.
+
+---
+
+## Production-Level Concepts Applied
+
+- Event-driven architecture
+- Loose coupling
+- Asynchronous messaging
+- Fault tolerance
+- Horizontal scalability
+- Clean separation of concerns
+- No direct service-to-service dependency
+
+---
+
+## What I Learned from This Project
+
+- How RabbitMQ works for consumers
+- Difference between Direct and Fanout exchanges
+- How publish-subscribe systems work
+- How NestJS integrates RabbitMQ consumers
+- How to decouple services in production
+- How to monitor message flow using RabbitMQ UI
+
+---
+
+## Made By Deeksha
+
+This Notification Service demonstrates real-world RabbitMQ consumer integration
+using NestJS with both Direct and Fanout messaging patterns.
+It acts as a clean consumer service in an event-driven architecture.
