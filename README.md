@@ -1,20 +1,20 @@
 # Notification Service – RabbitMQ Consumer (Direct + Fanout)
 ## Event-Driven Microservices using NestJS + PostgreSQL
 
-This Notification Service acts as a consumer service in a RabbitMQ-based microservices architecture.
+This Notification Service acts as a **consumer service** in a RabbitMQ-based microservices architecture.
 It listens for events published by the Post Service and processes notifications accordingly.
 
-This project demonstrates how real-world backend systems consume events from message brokers
+This project demonstrates how **real-world backend systems** consume events from message brokers
 to perform tasks independently without tight coupling between services.
 
-The goal of this service is to show how consumer services react to events
+The goal of this service is to show **how consumer services react to events**
 in a scalable, reliable, and decoupled manner.
 
 ---
 
 ## What is RabbitMQ (Easy Explanation)
 
-RabbitMQ is a message broker that sits between services.
+RabbitMQ is a **message broker** that sits between services.
 
 Instead of one service directly calling another service,
 messages flow through RabbitMQ like this:
@@ -32,14 +32,14 @@ This approach ensures:
 
 ## RabbitMQ Exchange Types (Concept)
 
-RabbitMQ supports 4 types of exchanges:
+RabbitMQ supports **4 types of exchanges**:
 
 - Direct Exchange
 - Fanout Exchange
 - Topic Exchange
 - Headers Exchange
 
-In this project, I have implemented 2 exchange types:
+In this project, I have implemented **2 exchange types**:
 
 - Direct Exchange
 - Fanout Exchange
@@ -89,7 +89,7 @@ In this project:
 
 ### 2. Fanout Exchange (Publish-Subscribe)
 
-Used when multiple services need to react to the same event.
+Used when **multiple services** need to react to the same event.
 
 Flow:
 Post Service → Fanout Exchange → Multiple Queues → Multiple Consumers
@@ -156,7 +156,7 @@ src/
 ## Setup Instructions
 
 ### Clone Repository
-git clone <repository-url>
+git clone <https://github.com/Deeksha1108/RabbitMQ_NotificationService.git>
 cd notification-service
 npm install
 
@@ -243,8 +243,8 @@ If consumers acknowledge messages, they may disappear from queues — normal beh
 
 ## What I Learned from This Project
 
-- How RabbitMQ works for consumers
-- Difference between Direct and Fanout exchanges
+- How **RabbitMQ** works for consumers
+- Difference between **Direct and Fanout exchanges**
 - How publish-subscribe systems work
 - How NestJS integrates RabbitMQ consumers
 - How to decouple services in production
@@ -254,6 +254,6 @@ If consumers acknowledge messages, they may disappear from queues — normal beh
 
 ## Made By Deeksha
 
-This Notification Service demonstrates real-world RabbitMQ consumer integration
-using NestJS with both Direct and Fanout messaging patterns.
-It acts as a clean consumer service in an event-driven architecture.
+This **Notification Service** demonstrates **real-world RabbitMQ consumer** integration
+using NestJS with both **Direct and Fanout** messaging patterns.
+It acts as a clean **consumer service** in an **event-driven architecture**.
