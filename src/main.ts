@@ -3,19 +3,39 @@ import { AppModule } from './app.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 
 async function bootstrap() {
-  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
-    AppModule,
-    {
-      transport: Transport.RMQ,
-      options: {
-        urls: ['amqp://localhost:5672'],
-        queue: 'post_queue',
-        noAck: false,
-        queueOptions: { durable: true },
-      },
+  const app = await NestFactory.create(AppModule);
+
+  /**
+   * DIRECT implementation
+   */
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.RMQ,
+    options: {
+      urls: ['amqp://localhost:5672'],
+      queue: 'post_queue',
+      noAck: false,
+      queueOptions: { durable: true },
     },
-  );
-  await app.listen();
+  });
+
+  /**
+   * FANOUT (pub-sub implementation)
+   */
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.RMQ,
+    options: {
+      urls: ['amqp://localhost:5672'],
+
+      exchange: 'post_fanout_exchange',
+      exchangeType: 'fanout',
+
+      queue: 'notification_fanout_queue',
+      queueOptions: { durable: true },
+
+      noAck: false,
+    },
+  });
+  await app.startAllMicroservices();
   console.log('Notification Service is running for RabbitMQ integration...');
 }
 bootstrap();
